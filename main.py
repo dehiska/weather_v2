@@ -1,6 +1,6 @@
 # first install requests: sudo pip3 install requests
 from flask import Flask, render_template
-import requests
+from flask import request
 import sys
 import json
 
@@ -8,21 +8,25 @@ app = Flask(__name__)
 
 @app.route('/temperature/<city>')
 def temperature(city):
-    payload = {'APPID': '*******************', 'q':city}
+    payload = {'APPID': 'd16b435a233c70e95ef995c76c273b89', 'q':city}
     URL = 'http://api.openweathermap.org/data/2.5/weather'
-    response = requests.get(URL, params = payload)
+    response = request.get(URL, params = payload)
     if response.status_code == 200:
         print('Success!', file = sys.stdout)
+        
+        response_json = response.json()
+        formatted_response = json.dumps(response_json, indent = 2)
+        print(formatted_response, file=sys.stdout)
+
+        temperature = response_json['main']['temp']
+        s = '<h> Current temperature in {} is {:0.2f} Celsius. </s>'
+        return s.format(city, temperature - 273)
+
+
     elif response.status_code == 404:
         print('Not found.', file=sys.stdout)
 
-    response_json = response.json()
-    formatted_response = json.dumps(response_json, indent = 2)
-    print(formatted_response, file=sys.stdout)
-
-    temperature = response_json['main']['temp']
-    s = '<h> Current temperature in {} is {:0.2f} Celsius. </s>'
-    return s.format(city, temperature - 273)
+    
 
 
 def read_temps():
@@ -32,7 +36,7 @@ def read_temps():
     URL = 'http://api.openweathermap.org/data/2.5/weather'
     for city in cities:
         payload = {'APPID': '*******************', 'q':city}
-        response = requests.get(URL, params = payload)
+        response = request.get(URL, params = payload)
         if response.status_code == 200:
             print('Success!', file = sys.stdout)
         elif response.status_code == 404:
